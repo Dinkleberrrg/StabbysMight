@@ -1,0 +1,7 @@
+## Interface: 11200
+## Title: Stabbys Might
+## Notes: Shows Blessing of Might as Stabbys Might on your screen (cosmetic only).
+## Author: Henry
+## Version: 1.0.0
+## OptionalDeps: ModernSpellBook, DragonflightUI-Reforged, XPerl
+StabbysMight.lua
