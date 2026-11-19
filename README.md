@@ -10,6 +10,8 @@ macros (`/cast Blessing of Might`), Roid-Macros, simpleAuras and other addons.
 - Tooltips: spellbook, action bars, buff icons (player, party, target, XPerl)
 - ModernSpellBook and the default spellbook
 - Chat messages, for example "You gain Stabbys Might."
+- Tooltip descriptions: "Places a blessing on the stabbylike target, increasing stabby power by 20 for 5 min.
+  Players may only have one stabby blessing on them per Paladin at any one time." (numbers come from the game)
 
 ## Install
 Copy the `StabbysMight` folder into `Interface/AddOns` and restart the game.
