@@ -18,25 +18,60 @@ local function Rename(text)
   return text
 end
 
-local function FixFontString(fs)
+-- Description rewrites. These only apply inside a tooltip whose title is
+-- (Greater) Stabbys Might, so other spells that mention attack power stay normal.
+-- Patterns are plain text; the numbers (20, 5 min, ...) are kept from the game.
+local DESC_RENAMES = {
+  { "Places a Blessing on the friendly target", "Places a blessing on the stabbylike target" },
+  { "melee attack power", "stabby power" },
+  { "attack power", "stabby power" },
+  { "one Blessing on them", "one stabby blessing on them" },
+}
+
+local function RewriteDesc(text)
+  if type(text) ~= "string" then return text end
+  for _, pair in ipairs(DESC_RENAMES) do
+    if string.find(text, pair[1], 1, true) then
+      text = string.gsub(text, pair[1], pair[2])
+    end
+  end
+  return text
+end
+
+local function FixFontString(fs, fn)
+  fn = fn or Rename
   if not fs then return end
   local t = fs:GetText()
   if t then
-    local n = Rename(t)
-    if n ~= t then fs:SetText(n) end
+    local n = fn(t)
+    if n ~= t then fs:SetText(n) return true end
   end
 end
 
 ----------------------------------------------------------------------
 -- Tooltips (spellbook, action bars, buffs on you / party / target)
 ----------------------------------------------------------------------
+local function IsStabbyTooltip(tt)
+  local title = getglobal(tt:GetName() .. "TextLeft1")
+  local t = title and title:GetText()
+  return t and string.find(t, "Stabbys Might", 1, true)
+end
+
 local function FixTooltip(tt)
   local name = tt:GetName()
   local lines = tt:NumLines() or 0
+  local changed
   for i = 1, lines do
-    FixFontString(getglobal(name .. "TextLeft" .. i))
-    FixFontString(getglobal(name .. "TextRight" .. i))
+    if FixFontString(getglobal(name .. "TextLeft" .. i)) then changed = true end
+    if FixFontString(getglobal(name .. "TextRight" .. i)) then changed = true end
   end
+  if IsStabbyTooltip(tt) then
+    for i = 2, lines do
+      if FixFontString(getglobal(name .. "TextLeft" .. i), RewriteDesc) then changed = true end
+    end
+  end
+  -- let the tooltip resize to the new text
+  if changed and tt:IsVisible() then tt:Show() end
 end
 
 local SET_METHODS = {
@@ -67,7 +102,9 @@ local function HookTooltip(tt)
   end
   local origAddLine = tt.AddLine
   tt.AddLine = function(self, text, a2, a3, a4, a5)
-    return origAddLine(self, Rename(text), a2, a3, a4, a5)
+    text = Rename(text)
+    if IsStabbyTooltip(self) then text = RewriteDesc(text) end
+    return origAddLine(self, text, a2, a3, a4, a5)
   end
   local origAddDouble = tt.AddDoubleLine
   tt.AddDoubleLine = function(self, l, r, a3, a4, a5, a6, a7, a8)
